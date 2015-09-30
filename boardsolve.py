@@ -1,15 +1,15 @@
 GAME1 = """
+  ........H..
+  .......PA..
+  .......OE..
+  .......W...
+  .......D...
+  ....SIRE...
+  .......R...
   ...........
   ...........
-  ........VON
-  ........O..
-  ........L..
-  .....HIKERS
-  .....E....Q
-  ...FAX....U
-  ANTA.E....A
-  ..O..D....D
-  ..W....BIOS
+  ...........
+  ...........
   """
 
 GAME2 = """
@@ -21,32 +21,65 @@ GAME2 = """
   .............BE
   ..........T..L.
   .......VEXED.O.
-  ..........C..W.
-  .........WHIPS.
-  ...............
-  ...............
-  ...............
-  ...............
-  ...............
+  .......O..C..W.
+  .......T.WHIPS.
+  ......GI.O.....
+  ......EN.MODERN
+  ......AG.E.....
+  ......R..N.....
+  ...POTS........
 """
 
 GAME3 = """
   ...........
   ...........
-  O..........
-  V..Z.......
-  E..O.UH....
-  RIPOSTES.D.
-  B......L.E.
-  I......A.W.
-  G......MEAL
-  .........X.
+  O...F.....C
+  V..ZA.....O
+  E..O.UH...R
+  RIPOSTES.DE
+  B.A....L.E.
+  I.N....A.W.
+  G.T....MEAL
+  .KEY.....X.
+  ..D........
+"""
+
+GAME4 = """
   ...........
+  ...........
+  ...........
+  .......D...
+  ......HURL.
+  .....ZAP...
+  .......E...
+  .......DIVA
+  ..........X
+  ..........I
+  ......JAMBS
+  """
+
+GAME5 = """
+  ...............
+  ...............
+  ...............
+  ...............
+  ...............
+  ...............
+  .......E.......
+  .......V.......
+  .......I.......
+  .......L.......
+  ...............
+  ...............
+  ...............
+  ...............
+  ...............
 """
 
 class BoardSolve:
 
   BOARDSIZE = 11
+  VISUAL_THRESHOLD = 5
 
   # . blank
   # 2,3: double, triple word
@@ -81,12 +114,14 @@ class BoardSolve:
 
   def __init__(self, wdict):
     self.wdict = wdict
-    self.BOARDSTATE = GAME3
+    self.BOARDSTATE = GAME5
+    self.VISUAL_THRESHOLD = 5
     
     # Parse board state
     self.BOARDSTATE = self.BOARDSTATE.split()
+    self.BOARDSIZE = len(self.BOARDSTATE)
 
-  def score(self, word, pr, pc, vertical):
+  def score(self, word, pr, pc, vertical, rack=None):
     """
     Try to place a word in a space and return the score it will get.
     Return None if it's invalid.
@@ -97,7 +132,7 @@ class BoardSolve:
 
     # Step 1: put the word on, error out if conflict
     temp_board = []
-    num_put = 0
+    letters_put = []
     is_connected = False
     for r in self.BOARDSTATE:
       temp_board.append(list(r.lower()))
@@ -112,11 +147,16 @@ class BoardSolve:
           return None
 
         if cch == '.':
-          num_put += 1
+          letters_put.append(word[i])
         if pc > 0 and self.BOARDSTATE[pr+i][pc-1] != '.':
           is_connected = True
         if pc < self.BOARDSIZE-1 and self.BOARDSTATE[pr+i][pc+1] != '.':
           is_connected = True
+
+      if pr > 0 and self.BOARDSTATE[pr-1][pc] != '.':
+        is_connected = True
+      if pr+len(word) < self.BOARDSIZE and self.BOARDSTATE[pr+len(word)][pc] != '.':
+        is_connected = True
 
     else:
       assert pc + len(word) <= self.BOARDSIZE
@@ -128,11 +168,16 @@ class BoardSolve:
           return None
 
         if cch == '.':
-          num_put += 1
+          letters_put.append(word[i])
         if pr > 0 and self.BOARDSTATE[pr-1][pc+i] != '.':
           is_connected = True
         if pr < self.BOARDSIZE-1 and self.BOARDSTATE[pr+1][pc+i] != '.':
           is_connected = True
+
+      if pc > 0 and self.BOARDSTATE[pr][pc-1] != '.':
+        is_connected = True
+      if pc+len(word) < self.BOARDSIZE and self.BOARDSTATE[pr][pc+len(word)] != '.':
+        is_connected = True
 
     if not is_connected:
       return None
@@ -159,15 +204,21 @@ class BoardSolve:
           if not self.wdict.check_word(w):
             return None
 
+    # check to ensure we're only using rack letters
+    if rack is not None:
+      for l in letters_put:
+        if l not in rack:
+          return None
+
     # Visualize
-    if num_put >= 4:
+    if len(letters_put) >= self.VISUAL_THRESHOLD:
       for r in range(self.BOARDSIZE):
         for c in range(self.BOARDSIZE):
           print temp_board[r][c].upper(),
         print ''
       print '---------------------'
 
-    return num_put
+    return len(letters_put)
         
   # Try to find the best play given the board state and rack
   def solve(self, rack):
@@ -185,7 +236,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for c in range(self.BOARDSIZE - len(w) + 1):
-          cscore = self.score(w, r, c, False)
+          cscore = self.score(w, r, c, False, rack)
           if cscore is not None:
             candidates.append((cscore, w))
 
@@ -200,7 +251,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for r in range(self.BOARDSIZE - len(w) + 1):
-          cscore = self.score(w, r, c, True)
+          cscore = self.score(w, r, c, True, rack)
           if cscore is not None:
             candidates.append((cscore, w))
     

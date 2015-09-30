@@ -27,7 +27,7 @@ def form_with_board_blank(rack,board):
 
 def main():
   #print form_with_board('auib', 'vye')
-  board.solve('ceeoere')
+  board.solve('hsadiaa')
 
 
 if __name__ == '__main__':
