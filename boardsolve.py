@@ -1,10 +1,10 @@
 GAME1 = """
   ........H..
   .......PA..
-  .......OE..
-  .......W...
-  .......D...
-  ....SIRE...
+  ......ZOEAL
+  .......W.G.
+  .......D.E.
+  ....SIRE.S.
   .......R...
   ...........
   ...........
@@ -25,9 +25,9 @@ GAME2 = """
   .......T.WHIPS.
   ......GI.O.....
   ......EN.MODERN
-  ......AG.E.....
-  ......R..N.....
-  ...POTS........
+  ......AG.E.R...
+  ......R..N.A...
+  ...POTS....T...
 """
 
 GAME3 = """
@@ -45,12 +45,12 @@ GAME3 = """
 """
 
 GAME4 = """
-  ...........
-  ...........
-  ...........
-  .......D...
+  ........GO.
+  ........OW.
+  ........FE.
+  .......DE..
   ......HURL.
-  .....ZAP...
+  .....ZAPS..
   .......E...
   .......DIVA
   ..........X
@@ -81,45 +81,59 @@ class BoardSolve:
   BOARDSIZE = 11
   VISUAL_THRESHOLD = 5
 
-  # . blank
-  # 2,3: double, triple word
-  # d,t: double, triple letter
-  BOARDSTR = """
-  t.3.....3.t
-  .2...2...2.
-  3.d.d.d.d.3
-  ...t...t...
-  ..d.....d..
-  .2.......2.
-  ..d.....d..
-  ...t...t...
-  3.d.d.d.d.3
-  .2...2...2.
-  t.3.....3.t
-  """
-
-  BOARDSTATE = """
-  ...........
-  ...........
-  ...........
-  ...........
-  ...........
-  ...RADIO...
-  ...........
-  ...........
-  ...........
-  ...........
-  ...........
-  """
+  BOARDSTATE = None
 
   def __init__(self, wdict):
     self.wdict = wdict
-    self.BOARDSTATE = GAME5
+    self.BOARDSTATE = GAME1
     self.VISUAL_THRESHOLD = 5
     
     # Parse board state
     self.BOARDSTATE = self.BOARDSTATE.split()
     self.BOARDSIZE = len(self.BOARDSTATE)
+
+  def square_neighbors(self, sq):
+    r = sq[0]
+    c = sq[1]
+    if r > 0:
+      yield (r-1,c)
+    if c > 0:
+      yield (r,c-1)
+    if r < self.BOARDSIZE - 1:
+      yield (r+1,c)
+    if c < self.BOARDSIZE - 1:
+      yield (r,c+1)
+
+  def check_connected(self, board):
+    """
+    BFS to check that board is connected
+    """
+    if board[self.BOARDSIZE/2][self.BOARDSIZE/2] == '.':
+      return False
+
+    q = []
+    q.append((self.BOARDSIZE/2, self.BOARDSIZE/2))
+    seen = set()
+
+    while len(q) > 0:
+      cur = q[0]
+      q = q[1:]
+      seen.add(cur)
+
+      for nei in self.square_neighbors(cur):
+        if not nei in seen:
+          if board[nei[0]][nei[1]] != '.':
+            q.append(nei)
+
+    # Now tally up all non empty
+    non_empty_count = 0
+    for r in board:
+      for c in r:
+        if c != '.':
+          non_empty_count += 1
+
+    connect_count = len(seen)
+    return connect_count == non_empty_count
 
   def score(self, word, pr, pc, vertical, rack=None):
     """
@@ -133,7 +147,6 @@ class BoardSolve:
     # Step 1: put the word on, error out if conflict
     temp_board = []
     letters_put = []
-    is_connected = False
     for r in self.BOARDSTATE:
       temp_board.append(list(r.lower()))
 
@@ -148,15 +161,6 @@ class BoardSolve:
 
         if cch == '.':
           letters_put.append(word[i])
-        if pc > 0 and self.BOARDSTATE[pr+i][pc-1] != '.':
-          is_connected = True
-        if pc < self.BOARDSIZE-1 and self.BOARDSTATE[pr+i][pc+1] != '.':
-          is_connected = True
-
-      if pr > 0 and self.BOARDSTATE[pr-1][pc] != '.':
-        is_connected = True
-      if pr+len(word) < self.BOARDSIZE and self.BOARDSTATE[pr+len(word)][pc] != '.':
-        is_connected = True
 
     else:
       assert pc + len(word) <= self.BOARDSIZE
@@ -169,17 +173,8 @@ class BoardSolve:
 
         if cch == '.':
           letters_put.append(word[i])
-        if pr > 0 and self.BOARDSTATE[pr-1][pc+i] != '.':
-          is_connected = True
-        if pr < self.BOARDSIZE-1 and self.BOARDSTATE[pr+1][pc+i] != '.':
-          is_connected = True
 
-      if pc > 0 and self.BOARDSTATE[pr][pc-1] != '.':
-        is_connected = True
-      if pc+len(word) < self.BOARDSIZE and self.BOARDSTATE[pr][pc+len(word)] != '.':
-        is_connected = True
-
-    if not is_connected:
+    if not self.check_connected(temp_board):
       return None
 
     # Step 2: verify that everything is a word
@@ -257,13 +252,4 @@ class BoardSolve:
     
     candidates = sorted(list(set(candidates)))
     print candidates
-
-# Use these in our strategy later
-letter_values = [1,4,4,2,1,4,2,3,1,10,5,1,3,1,1,3,10,1,1,1,2,5,5,8,5,10]
-
-def word_val(w):
-  s = 0
-  for c in w:
-    s += letter_values[ord(c)-ord('a')]
-  return s
 

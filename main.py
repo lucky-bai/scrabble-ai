@@ -26,8 +26,8 @@ def form_with_board_blank(rack,board):
   return nub_and_sort_by_length(ans)
 
 def main():
-  #print form_with_board('auib', 'vye')
-  board.solve('hsadiaa')
+  #print form_with_board('ilseixw', '')
+  board.solve('ltyjeim')
 
 
 if __name__ == '__main__':
