@@ -38,7 +38,7 @@ def solve_from_file(filename):
 
 def main():
   #print form_with_board('ilseixw', '')
-  solve_from_file('testcase/jgfran30.in')
+  solve_from_file('testcase/terryappling.in')
 
 
 if __name__ == '__main__':
