@@ -2,7 +2,7 @@ from dictionary import Dictionary
 from boardsolve import BoardSolve
 
 wdict = Dictionary('wordlist.txt')
-board = BoardSolve(wdict)
+boardsv = BoardSolve(wdict)
 
 def nub_and_sort_by_length(xs):
   return sorted(list(set(xs)), cmp=lambda x,y:1 if len(x)>len(y) else -1)
@@ -25,9 +25,20 @@ def form_with_board_blank(rack,board):
     b = chr(ord(b)+1)
   return nub_and_sort_by_length(ans)
 
+def solve_from_file(filename):
+  f = open(filename, 'r')
+  size = int(f.readline())
+  board = []
+  for r in xrange(size):
+    board.append(f.readline()[:-1])
+  rack = f.readline()
+
+  boardsv.solve(board, rack)
+
+
 def main():
   #print form_with_board('ilseixw', '')
-  board.solve('ltyjeim')
+  solve_from_file('testcase/jgfran30.in')
 
 
 if __name__ == '__main__':

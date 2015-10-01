@@ -1,96 +1,13 @@
-GAME1 = """
-  ........H..
-  .......PA..
-  ......ZOEAL
-  .......W.G.
-  .......D.E.
-  ....SIRE.S.
-  .......R...
-  ...........
-  ...........
-  ...........
-  ...........
-  """
-
-GAME2 = """
-  ...............
-  ...............
-  ..............F
-  ..............A
-  ..............M
-  .............BE
-  ..........T..L.
-  .......VEXED.O.
-  .......O..C..W.
-  .......T.WHIPS.
-  ......GI.O.....
-  ......EN.MODERN
-  ......AG.E.R...
-  ......R..N.A...
-  ...POTS....T...
-"""
-
-GAME3 = """
-  ...........
-  ...........
-  O...F.....C
-  V..ZA.....O
-  E..O.UH...R
-  RIPOSTES.DE
-  B.A....L.E.
-  I.N....A.W.
-  G.T....MEAL
-  .KEY.....X.
-  ..D........
-"""
-
-GAME4 = """
-  ........GO.
-  ........OW.
-  ........FE.
-  .......DE..
-  ......HURL.
-  .....ZAPS..
-  .......E...
-  .......DIVA
-  ..........X
-  ..........I
-  ......JAMBS
-  """
-
-GAME5 = """
-  ...............
-  ...............
-  ...............
-  ...............
-  ...............
-  ...............
-  .......E.......
-  .......V.......
-  .......I.......
-  .......L.......
-  ...............
-  ...............
-  ...............
-  ...............
-  ...............
-"""
 
 class BoardSolve:
 
   BOARDSIZE = 11
-  VISUAL_THRESHOLD = 5
+  VISUAL_THRESHOLD = 4
 
   BOARDSTATE = None
 
   def __init__(self, wdict):
     self.wdict = wdict
-    self.BOARDSTATE = GAME1
-    self.VISUAL_THRESHOLD = 5
-    
-    # Parse board state
-    self.BOARDSTATE = self.BOARDSTATE.split()
-    self.BOARDSIZE = len(self.BOARDSTATE)
 
   def square_neighbors(self, sq):
     r = sq[0]
@@ -205,7 +122,8 @@ class BoardSolve:
         if l not in rack:
           return None
 
-    # Visualize
+    # Visualize, try to make threshold = 1 less than max so far
+    self.VISUAL_THRESHOLD = max(self.VISUAL_THRESHOLD, len(letters_put)-1)
     if len(letters_put) >= self.VISUAL_THRESHOLD:
       for r in range(self.BOARDSIZE):
         for c in range(self.BOARDSIZE):
@@ -216,7 +134,10 @@ class BoardSolve:
     return len(letters_put)
         
   # Try to find the best play given the board state and rack
-  def solve(self, rack):
+  def solve(self, board, rack):
+    self.BOARDSTATE = board
+    self.BOARDSIZE = len(board)
+
     # (score, word)
     candidates = []
 
