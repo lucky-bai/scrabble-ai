@@ -11,7 +11,7 @@ def solve_from_file(filename):
   board = []
   for r in xrange(size):
     board.append(f.readline()[:-1])
-  rack = f.readline()
+  rack = f.readline().upper()
 
   boardsv.solve(board, rack)
 
