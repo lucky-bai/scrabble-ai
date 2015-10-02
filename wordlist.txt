@@ -121401,6 +121401,7 @@ qindarka
 qindars
 qintar
 qintars
+qis
 qiviut
 qiviuts
 qoph

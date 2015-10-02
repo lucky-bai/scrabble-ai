@@ -1,25 +1,10 @@
+from board_helper import BoardHelper
 
 class BoardSolve:
-
-  SIZE = 11
-  VISUAL_THRESHOLD = 3
-
-  BOARD = None
+  VISUAL_THRESHOLD = 4
 
   def __init__(self, wdict):
     self.wdict = wdict
-
-  def square_neighbors(self, sq):
-    r = sq[0]
-    c = sq[1]
-    if r > 0:
-      yield (r-1,c)
-    if c > 0:
-      yield (r,c-1)
-    if r < self.SIZE - 1:
-      yield (r+1,c)
-    if c < self.SIZE - 1:
-      yield (r,c+1)
 
   def score(self, word, pr, pc, vertical, rack=None):
     """
@@ -66,7 +51,7 @@ class BoardSolve:
     # Check connected
     is_connected = False
     for rc in squares_put:
-      for nei in self.square_neighbors(rc):
+      for nei in self.boardhelper.square_neighbors(rc):
         if self.BOARD[nei[0]][nei[1]] != '.':
           is_connected = True
     if not is_connected:
@@ -103,14 +88,8 @@ class BoardSolve:
         else:
           rack2.remove(l)
 
-    # Visualize, try to make threshold = 1 less than max so far
-    #self.VISUAL_THRESHOLD = max(self.VISUAL_THRESHOLD, len(letters_put)-1)
     if len(letters_put) >= self.VISUAL_THRESHOLD:
-      for r in range(self.SIZE):
-        for c in range(self.SIZE):
-          print temp_board[r][c].upper(),
-        print ''
-      print '---------------------'
+      self.boardhelper.print_board(temp_board)
 
     return len(letters_put)
 
@@ -118,6 +97,7 @@ class BoardSolve:
   def solve(self, board, rack):
     self.BOARD = board
     self.SIZE = len(board)
+    self.boardhelper = BoardHelper(self.SIZE)
     rack = sorted(rack)
 
     # (score, word)
