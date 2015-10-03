@@ -1,12 +1,11 @@
 from board_helper import BoardHelper
 
 class BoardSolve:
-  VISUAL_THRESHOLD = 5
 
   def __init__(self, wdict):
     self.wdict = wdict
 
-  def put_word(self, word, pr, pc, vertical, rack):
+  def put_word(self, word, pr, pc, vertical):
     """
     Put word on the board, return None if conflicts with something already
     there. Return board after putting word on it.
@@ -52,19 +51,31 @@ class BoardSolve:
       for nei in self.board_helper.square_neighbors(rc):
         if self.BOARD[nei[0]][nei[1]] != '.':
           is_connected = True
-    if not is_connected:
-      return None
+    
+    is_first_move = False
+    if is_first_move:
+      if temp_board[self.SIZE/2][self.SIZE/2] == '.':
+        return None
+    else:
+      if not is_connected:
+        return None
 
-    # check to ensure we're only using rack letters
-    rack2 = rack[:]
-    if rack2 is not None:
-      for l in letters_put:
-        if l not in rack2:
-          return None
-        else:
-          rack2.remove(l)
+    return letters_put, temp_board
 
-    return temp_board
+  def add_candidate_play(self, score, play_info, play_board):
+    """
+    play_info: struct containing all information to reconstruct this play
+    play_board: board state after this play
+    """
+    self.candidate_plays.append((score, play_info, play_board))
+
+  def display_top_candidate_plays(self, limit):
+    """ Get n top plays """
+    self.candidate_plays = sorted(self.candidate_plays, reverse=True)
+    for x in xrange(min(len(self.candidate_plays),limit)-1,-1,-1):
+      score, play_info, play_board = self.candidate_plays[x]
+      print score, play_info
+      self.board_helper.print_board(play_board)
 
   def score(self, word, pr, pc, vertical, rack=None):
     """
@@ -76,9 +87,10 @@ class BoardSolve:
     assert pr >= 0 and pc >= 0 and pr < self.SIZE and pc < self.SIZE
 
     # Step 1: put the word on, error out if conflict
-    temp_board = self.put_word(word, pr, pc, vertical, rack)
-    if temp_board is None:
+    put_result = self.put_word(word, pr, pc, vertical)
+    if put_result is None:
       return None
+    letters_put, temp_board = put_result
 
     # Step 2: verify that everything is a word
     for r in range(self.SIZE):
@@ -102,27 +114,64 @@ class BoardSolve:
           if not self.wdict.check_word(w):
             return None
 
+    # check to ensure we're only using rack letters
+    rack2 = rack[:]
+    if rack2 is not None:
+      for l in letters_put:
+        if l not in rack2:
+          return None
+        else:
+          rack2.remove(l)
+
     # Step 3: score the word
     existing_words = self.board_helper.words_on_board(self.BOARD)
     current_words = self.board_helper.words_on_board(temp_board)
     new_words = current_words.difference(existing_words)
 
-    score = sum([len(w[0]) for w in new_words])
-    if score >= self.VISUAL_THRESHOLD:
-      print new_words
-      self.board_helper.print_board(temp_board)
+    tot_score = 0
+    for w, start, vrt in new_words:
+      positions = []
+      for ix in xrange(len(w)):
+        if vrt:
+          positions.append((start[0]+ix, start[1]))
+        else:
+          positions.append((start[0], start[1]+ix))
 
-    return score
+      w_score = 0
+      w_multiplier = 1
+      for psr, psc in positions:
+        cur_ch = temp_board[psr][psc]
+        cur_ch_score = self.board_helper.letter_value(cur_ch)
+
+        # Logic for special bonus squares
+        if self.BOARD[psr][psc] == '.':
+          if self.board_helper.board_property(psr,psc) == '2':
+            w_multiplier *= 2
+          if self.board_helper.board_property(psr,psc) == '3':
+            w_multiplier *= 3
+          if self.board_helper.board_property(psr,psc) == 'd':
+            cur_ch_score *= 2
+          if self.board_helper.board_property(psr,psc) == 't':
+            cur_ch_score *= 3
+
+        w_score += cur_ch_score
+
+      w_score *= w_multiplier
+      tot_score += w_score
+
+      # Bingo bonus
+      if len(letters_put) == 7:
+        tot_score += 35
+
+    self.add_candidate_play(tot_score, [w[0] for w in new_words], temp_board)
 
   # Try to find the best play given the board state and rack
   def solve(self, board, rack):
     self.BOARD = board
     self.SIZE = len(board)
     self.board_helper = BoardHelper(self.SIZE)
+    self.candidate_plays = []
     rack = sorted(rack)
-
-    # (score, word)
-    candidates = []
 
     # try each column and each row
     for r in range(self.SIZE):
@@ -134,9 +183,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for c in range(self.SIZE - len(w) + 1):
-          cscore = self.score(w, r, c, False, rack)
-          if cscore is not None:
-            candidates.append((cscore, w))
+          self.score(w, r, c, False, rack)
 
     for c in range(self.SIZE):
       extra_chars = list(rack)
@@ -148,10 +195,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for r in range(self.SIZE - len(w) + 1):
-          cscore = self.score(w, r, c, True, rack)
-          if cscore is not None:
-            candidates.append((cscore, w))
+          self.score(w, r, c, True, rack)
     
-    candidates = sorted(list(set(candidates)))
-    print candidates
+    self.display_top_candidate_plays(40)
 

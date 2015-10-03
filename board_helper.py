@@ -5,6 +5,53 @@ class BoardHelper:
   """
   def __init__(self, size):
     self.SIZE = size
+  
+  # . blank
+  # 2,3: double, triple word
+  # d,t: double, triple letter
+  BOARDSTRS = {
+    11: """
+    t.3.....3.t
+    .2...2...2.
+    3.d.d.d.d.3
+    ...t...t...
+    ..d.....d..
+    .2.......2.
+    ..d.....d..
+    ...t...t...
+    3.d.d.d.d.3
+    .2...2...2.
+    t.3.....3.t
+    """.split(),
+
+    15: """
+    ...3..t.t..3...
+    ..d..2...2..d..
+    .d..d.....d..d.
+    3..t...2...t..3
+    ..d...d.d...d..
+    .2...t...t...2.
+    t...d.....d...t
+    ...2.......2...
+    t...d.....d...t
+    .2...t...t...2.
+    ..d...d.d...d..
+    3..t...2...t..3
+    .d..d.....d..d.
+    ..d..2...2..d..
+    ...3..t.t..3...
+    """.split()
+  }
+
+  # Use these in our strategy later
+  letter_values = [1,4,4,2,1,4,2,3,1,10,5,2,3,2,1,4,10,1,1,1,2,5,4,8,5,10]
+
+  def letter_value(self, c):
+    assert c >= 'A' and c <= 'Z'
+    return self.letter_values[ord(c) - ord('A')]
+
+  def board_property(self, r, c):
+    return self.BOARDSTRS[self.SIZE][r][c]
 
   def square_neighbors(self, sq):
     r = sq[0]
