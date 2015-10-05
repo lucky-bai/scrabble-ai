@@ -38,8 +38,11 @@ class Dictionary:
     else:
       return []
 
-  def sub_anagrams(self, w):
+  def sub_anagrams(self, w, has_blank=False):
     # Find sub-anagrams (using some subsets of a word)
+    if has_blank:
+      # Tricky double recursion here to return rack + blank
+      return self.sub_anagrams_blank(w)
     ans = []
     for wp in powerset(w):
       ws = ''.join(sorted(wp))
@@ -48,9 +51,10 @@ class Dictionary:
 
   def sub_anagrams_blank(self, w):
     # assume 1 blank
+    w = ''.join(w)
     ans = []
-    b = 'a'
-    while b <= 'z':
-      ans.extend(sub_anagrams(''.join(w+b)))
+    b = 'A'
+    while b <= 'Z':
+      ans.extend(self.sub_anagrams(''.join(w+b)))
       b = chr(ord(b)+1)
     return nub_and_sort_by_length(ans)

@@ -11,16 +11,32 @@ def solve_from_file(filename):
   board = []
   for r in xrange(size):
     board.append(f.readline()[:-1])
-  rack = f.readline().upper()
 
-  boardsv.solve(board, rack)
+  # Sanitize rack
+  rack = []
+  has_blank = False
+  for c in f.readline().upper()[:-1]:
+    if c >= 'A' and c <= 'Z':
+      rack.append(c)
+    elif c == '?':
+      if has_blank:
+        raise Exception('Maximum of 1 blank supported!')
+      else:
+        has_blank = True
+    else:
+      raise Exception('Invalid character: ' + c)
+  
+  boardsv.solve(board, rack, has_blank)
 
 
 def main():
-  if len(sys.argv) != 2:
-    print 'Need to specify input file!'
-  else:
-    solve_from_file(sys.argv[1])
+  try:
+    if len(sys.argv) != 2:
+      raise Exception('Need to specify input file!')
+    else:
+      solve_from_file(sys.argv[1])
+  except Exception, e:
+    print e
 
 
 if __name__ == '__main__':

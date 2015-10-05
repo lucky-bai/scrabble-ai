@@ -77,7 +77,7 @@ class BoardSolve:
       print score, play_info
       self.board_helper.print_board(play_board)
 
-  def score(self, word, pr, pc, vertical, rack=None):
+  def score(self, word, pr, pc, vertical, rack=None, has_blank=False):
     """
     Try to place a word in a space and return the score it will get.
     Return None if it's invalid.
@@ -115,13 +115,14 @@ class BoardSolve:
             return None
 
     # check to ensure we're only using rack letters
-    rack2 = rack[:]
-    if rack2 is not None:
-      for l in letters_put:
-        if l not in rack2:
-          return None
-        else:
-          rack2.remove(l)
+    if not has_blank:
+      rack2 = rack[:]
+      if rack2 is not None:
+        for l in letters_put:
+          if l not in rack2:
+            return None
+          else:
+            rack2.remove(l)
 
     # Step 3: score the word
     existing_words = self.board_helper.words_on_board(self.BOARD)
@@ -159,14 +160,18 @@ class BoardSolve:
       w_score *= w_multiplier
       tot_score += w_score
 
-      # Bingo bonus
-      if len(letters_put) == 7:
-        tot_score += 35
+    # Bingo bonus
+    if len(letters_put) == 7:
+      tot_score += 35
 
     self.add_candidate_play(tot_score, [w[0] for w in new_words], temp_board)
 
-  # Try to find the best play given the board state and rack
-  def solve(self, board, rack):
+
+  def solve(self, board, rack, has_blank=False):
+    """
+    Try to find the best play given the board state and rack
+    has_blank: put to true to indicate extra blank tile (max 1)
+    """
     self.BOARD = board
     self.SIZE = len(board)
     self.board_helper = BoardHelper(self.SIZE)
@@ -179,11 +184,11 @@ class BoardSolve:
       for ch in self.BOARD[r]:
         if ch != '.':
           extra_chars.append(ch.upper())
-      words = self.wdict.sub_anagrams(extra_chars)
+      words = self.wdict.sub_anagrams(extra_chars, has_blank)
       # try each one
       for w in words:
         for c in range(self.SIZE - len(w) + 1):
-          self.score(w, r, c, False, rack)
+          self.score(w, r, c, False, rack, has_blank)
 
     for c in range(self.SIZE):
       extra_chars = list(rack)
@@ -191,11 +196,11 @@ class BoardSolve:
         ch = self.BOARD[r][c]
         if ch != '.':
           extra_chars.append(ch.upper())
-      words = self.wdict.sub_anagrams(extra_chars)
+      words = self.wdict.sub_anagrams(extra_chars, has_blank)
       # try each one
       for w in words:
         for r in range(self.SIZE - len(w) + 1):
-          self.score(w, r, c, True, rack)
+          self.score(w, r, c, True, rack, has_blank)
     
     self.display_top_candidate_plays(40)
 
