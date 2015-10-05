@@ -1,6 +1,7 @@
 from dictionary import Dictionary
 from board_solve import BoardSolve
 import sys
+import traceback
 
 wdict = Dictionary('wordlist.txt')
 boardsv = BoardSolve(wdict)
@@ -36,7 +37,7 @@ def main():
     else:
       solve_from_file(sys.argv[1])
   except Exception, e:
-    print e
+    print traceback.format_exc()
 
 
 if __name__ == '__main__':

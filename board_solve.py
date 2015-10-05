@@ -5,7 +5,7 @@ class BoardSolve:
   def __init__(self, wdict):
     self.wdict = wdict
 
-  def put_word(self, word, pr, pc, vertical):
+  def put_word(self, word, pr, pc, vertical, is_first_move):
     """
     Put word on the board, return None if conflicts with something already
     there. Return board after putting word on it.
@@ -52,7 +52,6 @@ class BoardSolve:
         if self.BOARD[nei[0]][nei[1]] != '.':
           is_connected = True
     
-    is_first_move = False
     if is_first_move:
       if temp_board[self.SIZE/2][self.SIZE/2] == '.':
         return None
@@ -77,7 +76,8 @@ class BoardSolve:
       print score, play_info
       self.board_helper.print_board(play_board)
 
-  def score(self, word, pr, pc, vertical, rack=None, has_blank=False):
+  def score(self, word, pr, pc, vertical, rack=None,
+      has_blank=False, is_first_move=False):
     """
     Try to place a word in a space and return the score it will get.
     Return None if it's invalid.
@@ -87,7 +87,7 @@ class BoardSolve:
     assert pr >= 0 and pc >= 0 and pr < self.SIZE and pc < self.SIZE
 
     # Step 1: put the word on, error out if conflict
-    put_result = self.put_word(word, pr, pc, vertical)
+    put_result = self.put_word(word, pr, pc, vertical, is_first_move)
     if put_result is None:
       return None
     letters_put, temp_board = put_result
@@ -178,6 +178,13 @@ class BoardSolve:
     self.candidate_plays = []
     rack = sorted(rack)
 
+    # is the whole board blank?
+    is_first_move = True
+    for r in range(self.SIZE):
+      for ch in self.BOARD[r]:
+        if ch != '.':
+          is_first_move = False
+
     # try each column and each row
     for r in range(self.SIZE):
       extra_chars = list(rack)
@@ -188,7 +195,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for c in range(self.SIZE - len(w) + 1):
-          self.score(w, r, c, False, rack, has_blank)
+          self.score(w, r, c, False, rack, has_blank, is_first_move)
 
     for c in range(self.SIZE):
       extra_chars = list(rack)
@@ -200,7 +207,7 @@ class BoardSolve:
       # try each one
       for w in words:
         for r in range(self.SIZE - len(w) + 1):
-          self.score(w, r, c, True, rack, has_blank)
+          self.score(w, r, c, True, rack, has_blank, is_first_move)
     
     self.display_top_candidate_plays(40)
 
