@@ -44,7 +44,8 @@ class BoardHelper:
   }
 
   # Use these in our strategy later
-  letter_values = [1,4,4,2,1,4,3,3,1,10,5,2,4,2,1,4,10,1,1,1,2,5,4,8,3,10]
+  letter_values = [1,4,4,2,1,4,3,3,1,10,5,2,4,2,1,4,10,1,1,1,2,5,4,8,3,10] # english
+  #letter_values = [1,5,4,3,1,4,3,3,1,10,5,2,4,1,1,4,10,1,1,1,2,5,4,8,10,8] # french
 
   def letter_value(self, c):
     assert c >= 'A' and c <= 'Z'
