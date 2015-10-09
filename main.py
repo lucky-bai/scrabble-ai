@@ -3,12 +3,14 @@ from board_solve import BoardSolve
 import sys
 import traceback
 
-wdict = Dictionary('wordlist.txt')
-boardsv = BoardSolve(wdict)
-
 def solve_from_file(filename):
   f = open(filename, 'r')
   size = int(f.readline())
+  language = f.readline()[:-1]
+
+  wdict = Dictionary('wordlist-%s.txt' % language)
+  boardsv = BoardSolve(wdict, language)
+
   board = []
   for r in xrange(size):
     board.append(f.readline()[:-1])

@@ -2,8 +2,9 @@ from board_helper import BoardHelper
 
 class BoardSolve:
 
-  def __init__(self, wdict):
+  def __init__(self, wdict, language):
     self.wdict = wdict
+    self.LANGUAGE = language
 
   def put_word(self, word, pr, pc, vertical, is_first_move):
     """
@@ -174,7 +175,7 @@ class BoardSolve:
     """
     self.BOARD = board
     self.SIZE = len(board)
-    self.board_helper = BoardHelper(self.SIZE)
+    self.board_helper = BoardHelper(self.SIZE, self.LANGUAGE)
     self.candidate_plays = []
     rack = sorted(rack)
 

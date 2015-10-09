@@ -3,8 +3,9 @@ class BoardHelper:
   """
   Handles boring board functions that aren't directly related to AI
   """
-  def __init__(self, size):
+  def __init__(self, size, language):
     self.SIZE = size
+    self.LANGUAGE = language
   
   # . blank
   # 2,3: double, triple word
@@ -43,13 +44,14 @@ class BoardHelper:
     """.split()
   }
 
-  # Use these in our strategy later
-  letter_values = [1,4,4,2,1,4,3,3,1,10,5,2,4,2,1,4,10,1,1,1,2,5,4,8,3,10] # english
-  #letter_values = [1,5,4,3,1,4,3,3,1,10,5,2,4,1,1,4,10,1,1,1,2,5,4,8,10,8] # french
+  letter_values = {
+    'en': [1,4,4,2,1,4,3,3,1,10,5,2,4,2,1,4,10,1,1,1,2,5,4,8,3,10],
+    'fr': [1,5,4,3,1,4,5,3,1,10,10,2,4,1,1,4,10,1,1,1,2,8,10,10,10,8]
+  }
 
   def letter_value(self, c):
     assert c >= 'A' and c <= 'Z'
-    return self.letter_values[ord(c) - ord('A')]
+    return self.letter_values[self.LANGUAGE][ord(c) - ord('A')]
 
   def board_property(self, r, c):
     return self.BOARDSTRS[self.SIZE][r][c]
