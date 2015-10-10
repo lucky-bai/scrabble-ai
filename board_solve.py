@@ -116,14 +116,20 @@ class BoardSolve:
             return None
 
     # check to ensure we're only using rack letters
+    letters_not_in_rack = 0
+    rack2 = rack[:]
+    for l in letters_put:
+      if l not in rack2:
+        letters_not_in_rack += 1
+      else:
+        rack2.remove(l)
+    # If we got a blank, allow 1 letter leeway before dismissing
     if not has_blank:
-      rack2 = rack[:]
-      if rack2 is not None:
-        for l in letters_put:
-          if l not in rack2:
-            return None
-          else:
-            rack2.remove(l)
+      if letters_not_in_rack > 0:
+        return None
+    if has_blank:
+      if letters_not_in_rack > 1:
+        return None
 
     # Step 3: score the word
     existing_words = self.board_helper.words_on_board(self.BOARD)
@@ -144,6 +150,10 @@ class BoardSolve:
       for psr, psc in positions:
         cur_ch = temp_board[psr][psc]
         cur_ch_score = self.board_helper.letter_value(cur_ch)
+        if has_blank and cur_ch not in rack:
+          # Attempt to give 0 score to blank. Bug: this doesn't cover the case
+          # where copy of blank tile is in rack
+          cur_ch_score = 0
 
         # Logic for special bonus squares
         if self.BOARD[psr][psc] == '.':
@@ -188,6 +198,7 @@ class BoardSolve:
 
     # try each column and each row
     for r in range(self.SIZE):
+      print "Searching row %d/%d..." % (r+1, self.SIZE)
       extra_chars = list(rack)
       for ch in self.BOARD[r]:
         if ch != '.':
@@ -199,6 +210,7 @@ class BoardSolve:
           self.score(w, r, c, False, rack, has_blank, is_first_move)
 
     for c in range(self.SIZE):
+      print "Searching column %d/%d..." % (c+1, self.SIZE)
       extra_chars = list(rack)
       for r in range(self.SIZE):
         ch = self.BOARD[r][c]
