@@ -60,7 +60,7 @@ class BoardSolve:
       if not is_connected:
         return None
 
-    return letters_put, temp_board
+    return letters_put, squares_put, temp_board
 
   def add_candidate_play(self, score, play_info, play_board):
     """
@@ -91,7 +91,7 @@ class BoardSolve:
     put_result = self.put_word(word, pr, pc, vertical, is_first_move)
     if put_result is None:
       return None
-    letters_put, temp_board = put_result
+    letters_put, squares_put, temp_board = put_result
 
     # Step 2: verify that everything is a word
     for r in range(self.SIZE):
@@ -150,7 +150,7 @@ class BoardSolve:
       for psr, psc in positions:
         cur_ch = temp_board[psr][psc]
         cur_ch_score = self.board_helper.letter_value(cur_ch)
-        if has_blank and cur_ch not in rack:
+        if has_blank and cur_ch not in rack and (psr,psc) in squares_put:
           # Attempt to give 0 score to blank. Bug: this doesn't cover the case
           # where copy of blank tile is in rack
           cur_ch_score = 0
